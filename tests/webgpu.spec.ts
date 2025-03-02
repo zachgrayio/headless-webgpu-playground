@@ -292,10 +292,14 @@ test.describe('WebGPU tests', () => {
         };
       }
 
-      function makeRandom(length: number): Float32Array {
+      function makeRandom(length: number, seed: number = 12345): Float32Array {
         const array = new Float32Array(length);
+        let x = seed;
         for (let i = 0; i < length; i++) {
-          array[i] = 0.01 + 0.99 * Math.random();
+          // LCG random number generator with seed
+          x = (x * 48271) % 2147483647;
+          // ccale to [0.01, 1.0] range
+          array[i] = 0.01 + 0.99 * (x / 2147483647);
         }
         return array;
       }
