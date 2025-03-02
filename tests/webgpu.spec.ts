@@ -1,8 +1,15 @@
 /// <reference types="@webgpu/types" />
 
 import { test, expect, Page } from '@playwright/test';
+import exp from 'constants';
 import * as fs from 'fs';
 import * as path from 'path';
+
+async function loadShader(filename): Promise<string> {
+  const fs = require('fs');
+  const path = require('path');
+  return fs.readFileSync(path.join(process.cwd(), 'shaders', filename), 'utf8');
+}
 
 test.describe('WebGPU tests', () => {
   const resultsDir = path.join(process.cwd(), 'test-results/webgpu');
@@ -89,7 +96,25 @@ test.describe('WebGPU tests', () => {
   test('should perform WebGPU matmul', async ({ page }) => {
     await _gotoWebGpuSamples(page);
 
-    const result = await page.evaluate(async () => {
+    const shaderCode = await loadShader('matmul.wgsl');
+    expect(shaderCode).toBeTruthy();
+    expect(shaderCode.length).toBeGreaterThan(10);
+
+    type WebGPUSgemmResult = {
+      success: true;
+      averageTimeMs: number;
+      flops: number;
+      sampleValues: number[];
+      shape: [number, number, number];
+    };
+
+    type WebGPUError = {
+      error: string;
+    };
+
+    type WebGPUBenchmarkResult = WebGPUSgemmResult[] | WebGPUError;
+
+    const result = await page.evaluate(async (shaderCode): Promise<WebGPUBenchmarkResult> => {
       if (!navigator.gpu) {
         return { error: 'WebGPU not supported' };
       }
@@ -184,7 +209,7 @@ test.describe('WebGPU tests', () => {
           }),
           compute: {
             module: device.createShaderModule({
-              code: await fetch('/shaders/matmul.wgsl').then(r => r.text()),
+              code: shaderCode,
             }),
             entryPoint: 'main',
           },
@@ -248,6 +273,7 @@ test.describe('WebGPU tests', () => {
         ];
         const alpha = 1.0;
         const runs = 30;
+        const sampleSliceLen = 4;
         let shapeResults: any[] = [];
 
         for (const [m, n, k] of shapes) {
@@ -275,7 +301,7 @@ test.describe('WebGPU tests', () => {
             success: true,
             averageTimeMs: avgTime,
             flops: flops,
-            sampleValues: lastResult ? lastResult.slice(0, 4) : [],
+            sampleValues: lastResult ? Array.from(lastResult.slice(0, sampleSliceLen)) : [],
             shape: [m, n, k],
           });
         }
@@ -284,9 +310,25 @@ test.describe('WebGPU tests', () => {
         console.error(err);
         return { error: err.toString() };
       }
-    });
+    }, shaderCode);
 
-    console.log('WebGPU matmuls done: ', JSON.stringify(result, null, 2));
+    expect('error' in result).toBe(false);
+    expect(Array.isArray(result)).toBe(true);
+    const resultArray = result as WebGPUSgemmResult[];
+    expect(resultArray.length).toBeGreaterThan(0);
+
+    for (const benchmark of resultArray) {
+      expect(benchmark.success).toBe(true);
+      expect(benchmark.averageTimeMs).toBeGreaterThan(0);
+      expect(benchmark.flops).toBeGreaterThan(0);
+      expect(benchmark.shape.length).toBe(3);
+      expect(benchmark.sampleValues.length).toBeGreaterThan(0);
+
+      // most critical test: ensure the sampled results are non-zero; if they are zero, the matmul failed.
+      expect(benchmark.sampleValues.some(v => v !== 0)).toBe(true);
+    }
+
+    console.log('WebGPU gemms completed: ', JSON.stringify(result, null, 2));
   });
 
   async function _gotoWebGpuSamples(page: Page, sample: string = 'helloTriangle'): Promise<Page> {
