@@ -59,31 +59,33 @@ GPU Adapter info: {
   limits: {}
 }
 [chromium] › tests/webgpu.spec.ts:89:7 › WebGPU tests › should perform WebGPU matmul
-WebGPU matmuls done:  [
-  ...
-  {
-    "success": true,
-    "averageTimeMs": 419.3766666666915,
-    "flops": 640.0820010650349,
-    "sampleValues": [
-      2031.99755859375,
-      2064.060302734375,
-      2070.109130859375,
-      2069.388671875
-    ],
-    "shape": [
-      4096,
-      4096,
-      8000
-    ],
-    "launchParams": {
-      "dispatchX": 512,
-      "dispatchY": 512,
-      "workgroupSizeX": 8,
-      "workgroupSizeY": 8
+WebGPU gemms completed:  {
+  "gemmResults": [
+    ...
+    {
+      "success": true,
+      "averageTimeMs": 419.3766666666915,
+      "flops": 640.0820010650349,
+      "sampleValues": [
+        2031.99755859375,
+        2064.060302734375,
+        2070.109130859375,
+        2069.388671875
+      ],
+      "shape": [
+        4096,
+        4096,
+        8000
+      ],
+      "launchParams": {
+        "dispatchX": 512,
+        "dispatchY": 512,
+        "workgroupSizeX": 8,
+        "workgroupSizeY": 8
+      }
     }
-  }
-]
+  ]
+}
   4 passed (23.6s)
 
 ```
