@@ -13,21 +13,59 @@ With the checked in configuration, `chrome://gpu` reports the following on my ma
 
 Contrary to some guides, using the flag `--use-gl=egl` or `gl` or similar to get the `chrome://gpu` page to show WebGL and WebGPU as fully hardware accelerated actually will break the availability of `navigator.gpu` because the GL backend isn't fully compatible yet, so mileage may vary with that approach.
 
-## Performance
+## Results & GEMM Performance on RTX 4090
 
-Again on my 4090 I'm seeing the following output from the `sgemm` benchmark on WebGPU:
+Again on my 4090, I'm seeing the following output from the `sgemm` benchmark on WebGPU:
 
 ```
-[
+npm run test:webgpu
+
+> headless-gpu@1.0.0 test:webgpu
+> playwright test webgpu.spec.ts
+
+
+Running 4 tests using 4 workers
+[chromium] › tests/webgpu.spec.ts:48:7 › WebGPU tests › should get WebGL device info
+WebGL Device Info: {
+  vendor: 'Google Inc. (NVIDIA)',
+  renderer: 'ANGLE (NVIDIA, Vulkan 1.3.277 (NVIDIA NVIDIA GeForce RTX 4090 (0x00002684)), NVIDIA)',
+  version: 'WebGL 2.0 (OpenGL ES 3.0 Chromium)',
+  shadingLanguageVersion: 'WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)'
+}
+[chromium] › tests/webgpu.spec.ts:23:7 › WebGPU tests › should have gpu on navigator
+GPU Adapter info: {
+  isFallbackAdapter: false,
+  features: [
+    'depth32float-stencil8',
+    'rg11b10ufloat-renderable',
+    'bgra8unorm-storage',
+    'chromium-experimental-multi-draw-indirect',
+    'texture-compression-bc',
+    'dual-source-blending',
+    'chromium-experimental-snorm16-texture-formats',
+    'chromium-experimental-timestamp-query-inside-passes',
+    'float32-filterable',
+    'indirect-first-instance',
+    'float32-blendable',
+    'depth-clip-control',
+    'timestamp-query',
+    'chromium-experimental-unorm16-texture-formats',
+    'clip-distances',
+    'subgroups'
+  ],
+  limits: {}
+}
+[chromium] › tests/webgpu.spec.ts:89:7 › WebGPU tests › should perform WebGPU matmul
+WebGPU matmuls done:  [
   {
     "success": true,
-    "averageTimeMs": 2.3100000001490115,
-    "flops": 0.22696450214986133,
+    "averageTimeMs": 1.6333333333333333,
+    "flops": 0.32099265306122454,
     "sampleValues": {
-      "0": 15.472850799560547,
-      "1": 13.9146728515625,
-      "2": 14.548881530761719,
-      "3": 14.497349739074707
+      "0": 20.75855827331543,
+      "1": 16.7813720703125,
+      "2": 17.734426498413086,
+      "3": 15.489055633544922
     },
     "shape": [
       64,
@@ -37,13 +75,13 @@ Again on my 4090 I'm seeing the following output from the `sgemm` benchmark on W
   },
   {
     "success": true,
-    "averageTimeMs": 3.65,
-    "flops": 9.19299506849315,
+    "averageTimeMs": 3.896666666679084,
+    "flops": 8.611060393471275,
     "sampleValues": {
-      "0": 67.73794555664062,
-      "1": 66.70209503173828,
-      "2": 62.81159210205078,
-      "3": 68.3356704711914
+      "0": 64.46620178222656,
+      "1": 60.390655517578125,
+      "2": 62.5800666809082,
+      "3": 63.98574447631836
     },
     "shape": [
       256,
@@ -53,13 +91,13 @@ Again on my 4090 I'm seeing the following output from the `sgemm` benchmark on W
   },
   {
     "success": true,
-    "averageTimeMs": 10.009999999962748,
-    "flops": 214.53383096982935,
+    "averageTimeMs": 11.800000000007762,
+    "flops": 181.99013966089726,
     "sampleValues": {
-      "0": 252.95870971679688,
-      "1": 259.64569091796875,
-      "2": 263.2388000488281,
-      "3": 258.0788269042969
+      "0": 266.7172546386719,
+      "1": 266.0361328125,
+      "2": 274.69879150390625,
+      "3": 266.9803771972656
     },
     "shape": [
       1024,
@@ -69,19 +107,39 @@ Again on my 4090 I'm seeing the following output from the `sgemm` benchmark on W
   },
   {
     "success": true,
-    "averageTimeMs": 249.5800000000745,
-    "flops": 550.680957897103,
+    "averageTimeMs": 237.08333333334886,
+    "flops": 579.7073608660428,
     "sampleValues": {
-      "0": 1031.1014404296875,
-      "1": 1066.0184326171875,
-      "2": 1055.2919921875,
-      "3": 1062.053955078125
+      "0": 1039.3314208984375,
+      "1": 1040.7728271484375,
+      "2": 1027.8123779296875,
+      "3": 1027.906005859375
     },
     "shape": [
       4096,
       4096,
       4096
     ]
+  },
+  {
+    "success": true,
+    "averageTimeMs": 411.37999999998135,
+    "flops": 652.524323010385,
+    "sampleValues": {
+      "0": 2041.892333984375,
+      "1": 2035.90771484375,
+      "2": 2065.724365234375,
+      "3": 2040.863037109375
+    },
+    "shape": [
+      4096,
+      4096,
+      8000
+    ]
   }
 ]
+  4 passed (23.6s)
+
 ```
+And in `nvtop`: 
+![image](https://github.com/user-attachments/assets/a5642c3e-4f1e-4648-85ae-250a84ee08a7)
