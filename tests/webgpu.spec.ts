@@ -96,25 +96,42 @@ test.describe('WebGPU tests', () => {
   test('should perform WebGPU matmul', async ({ page }) => {
     await _gotoWebGpuSamples(page);
 
-    const shaderCode = await loadShader('matmul.wgsl');
+    const shaderCode = await loadShader('matmul_fma.wgsl');
     expect(shaderCode).toBeTruthy();
     expect(shaderCode.length).toBeGreaterThan(10);
 
-    type WebGPUSgemmResult = {
+    type WebGPUSgemmBenchmarkResult = {
       success: true;
       averageTimeMs: number;
       flops: number;
       sampleValues: number[];
       shape: [number, number, number];
+      launchParams: LaunchParams | undefined;
+    };
+
+    type SgemmResult = {
+      result: Float32Array;
+      launchParams: LaunchParams;
     };
 
     type WebGPUError = {
       error: string;
     };
 
-    type WebGPUBenchmarkResult = WebGPUSgemmResult[] | WebGPUError;
+    type LaunchParams = {
+      dispatchX: number;
+      dispatchY: number;
+      workgroupSizeX: number;
+      workgroupSizeY: number;
+    };
 
-    const result = await page.evaluate(async (shaderCode): Promise<WebGPUBenchmarkResult> => {
+    type WebGPUBenchmarkResult = {
+      gemmResults: WebGPUSgemmBenchmarkResult[];
+    };
+
+    type Result = WebGPUBenchmarkResult | WebGPUError;
+
+    const result = await page.evaluate(async (shaderCode): Promise<Result> => {
       if (!navigator.gpu) {
         return { error: 'WebGPU not supported' };
       }
@@ -146,7 +163,7 @@ test.describe('WebGPU tests', () => {
         alpha: number,
         a: Float32Array,
         b: Float32Array,
-      ): Promise<Float32Array> {
+      ): Promise<SgemmResult> {
         const aBuffer = device.createBuffer({
           size: a.byteLength,
           usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -229,7 +246,20 @@ test.describe('WebGPU tests', () => {
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(computePipeline);
         passEncoder.setBindGroup(0, bindGroup);
-        passEncoder.dispatchWorkgroups(Math.ceil(m / 8), Math.ceil(n / 8));
+
+        // attempt to get workgroup size from shader code dynamically
+        let workgroupSizeX = 16;
+        let workgroupSizeY = 8;
+        const workgroupSizeMatch = shaderCode.match(
+          /@compute\s+@workgroup_size\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/,
+        );
+        if (workgroupSizeMatch) {
+          workgroupSizeX = parseInt(workgroupSizeMatch[1], 10);
+          workgroupSizeY = parseInt(workgroupSizeMatch[2], 10);
+        }
+        const dispatchX = Math.ceil(m / workgroupSizeX);
+        const dispatchY = Math.ceil(n / workgroupSizeY);
+        passEncoder.dispatchWorkgroups(dispatchX, dispatchY);
         passEncoder.end();
 
         commandEncoder.copyBufferToBuffer(
@@ -248,7 +278,16 @@ test.describe('WebGPU tests', () => {
         result.set(resultArray);
         readbackBuffer.unmap();
 
-        return result;
+        return {
+          result: result,
+          // include the computed launch parameters to aid in performance analysis
+          launchParams: {
+            dispatchX: dispatchX,
+            dispatchY: dispatchY,
+            workgroupSizeX: workgroupSizeX,
+            workgroupSizeY: workgroupSizeY,
+          },
+        };
       }
 
       function makeRandom(length: number): Float32Array {
@@ -274,7 +313,7 @@ test.describe('WebGPU tests', () => {
         const alpha = 1.0;
         const runs = 30;
         const sampleSliceLen = 4;
-        let shapeResults: any[] = [];
+        let shapeResults: WebGPUSgemmBenchmarkResult[] = [];
 
         for (const [m, n, k] of shapes) {
           const array_a = makeRandom(m * k);
@@ -284,12 +323,15 @@ test.describe('WebGPU tests', () => {
           let timeSum = 0;
           let retSum = 0;
           let lastResult;
+          let launchParams: LaunchParams | undefined;
 
           for (let i = 0; i < runs; i++) {
             console.time('sgemm');
             const sgemmStartTime = performance.now(); //ms
             const runResult = await sgemm(m, n, k, alpha, array_a, array_b);
-            lastResult = runResult;
+            lastResult = runResult.result;
+            launchParams = runResult.launchParams;
+
             retSum += runResult[0];
             const sgemmEndTime = performance.now();
             console.timeEnd('sgemm');
@@ -303,21 +345,28 @@ test.describe('WebGPU tests', () => {
             flops: flops,
             sampleValues: lastResult ? Array.from(lastResult.slice(0, sampleSliceLen)) : [],
             shape: [m, n, k],
+            launchParams: launchParams,
           });
         }
-        return shapeResults;
+        return {
+          gemmResults: shapeResults,
+        };
       } catch (err) {
         console.error(err);
         return { error: err.toString() };
       }
     }, shaderCode);
 
+    if ('error' in result) {
+      console.error('WebGPU sgemm error:', result.error);
+    }
     expect('error' in result).toBe(false);
-    expect(Array.isArray(result)).toBe(true);
-    const resultArray = result as WebGPUSgemmResult[];
-    expect(resultArray.length).toBeGreaterThan(0);
 
-    for (const benchmark of resultArray) {
+    const benchmarkResult = result as WebGPUBenchmarkResult;
+    expect(Array.isArray(benchmarkResult.gemmResults)).toBe(true);
+    expect(benchmarkResult.gemmResults.length).toBeGreaterThan(0);
+
+    for (const benchmark of benchmarkResult.gemmResults) {
       expect(benchmark.success).toBe(true);
       expect(benchmark.averageTimeMs).toBeGreaterThan(0);
       expect(benchmark.flops).toBeGreaterThan(0);

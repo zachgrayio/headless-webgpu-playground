@@ -55,18 +55,22 @@ export default defineConfig({
             // gpu acceleration settings
             '--enable-gpu',
             '--enable-gpu-rasterization',
+            '--gpu-no-context-lost',
             '--disable-gpu-sandbox',
             '--disable-software-rasterizer',
             '--use-cmd-decoder=passthrough',
+            '--disable-gpu-watchdog',
+            '--force-high-performance-gpu',
             '--enable-zero-copy',
             // graphics api settings
             '--use-gl=angle',
             '--use-angle=vulkan',
+            '--use-vulkan=native',
             '--enable-features=Ozone,Vulkan,VulkanFromANGLE,DefaultANGLEVulkan,WebGPU',
             '--disable-vulkan-surface',
             // webgpu settings
             '--enable-unsafe-webgpu',
-            '--enable-dawn-features=allow_unsafe_apis',
+            '--enable-dawn-features=disable_robustness,disable_dawn_validation,skip_validation,allow_unsafe_apis,dawn_disable_timing_queries',
           ],
         },
       },
