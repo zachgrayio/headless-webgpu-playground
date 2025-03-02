@@ -33,10 +33,7 @@ if (!fs.existsSync(resultsDir)) {
       '--enable-zero-copy',
       // graphics api settings
       '--use-gl=angle',
-      // enabling this flag causes the GPU page to report all features as enabled, but
-      // then causes navigator.gpu to be null. when it is not used, WebGPU/webgl report
-      // "hardware acclerated, but at reduced speed".
-      //'--use-angle=gl-egl',
+      '--use-angle=vulkan',
       '--enable-features=Ozone,Vulkan,VulkanFromANGLE,DefaultANGLEVulkan,WebGPU',
       '--disable-vulkan-surface',
       // webgpu settings
