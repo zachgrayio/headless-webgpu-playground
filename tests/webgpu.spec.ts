@@ -296,9 +296,13 @@ test.describe('WebGPU tests', () => {
           [256, 256, 256],
           [1024, 1024, 1024],
           [4096, 4096, 4096],
+          // this shape about as large as I can go before the operation returns 0s
+          // in the result array, which is a sign WebGPU is failing, probably a
+          // timeout issue somewhere
+          [4096, 4096, 8000],
         ];
         const alpha = 1.0;
-        const runs = 10;
+        const runs = 30;
         let shapeResults: any[] = [];
 
         for (const [m, n, k] of shapes) {
