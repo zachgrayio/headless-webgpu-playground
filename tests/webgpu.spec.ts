@@ -304,7 +304,8 @@ test.describe('WebGPU tests', () => {
       }
 
       try {
-        // run benchmarks of the sgemm with various shapes to measure webgpu performance
+        // run benchmarks of the sgemm with various shapes to measure webgpu performance.
+        // Bench harness partiall borrowed from `milhidaka/webgpu-blas`
         const shapes = [
           [64, 64, 64],
           [256, 256, 256],
