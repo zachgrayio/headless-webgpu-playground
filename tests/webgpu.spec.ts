@@ -104,7 +104,7 @@ test.describe('WebGPU tests', () => {
     type WebGPUSgemmBenchmarkResult = {
       success: true;
       averageTimeMs: number;
-      flops: number;
+      tflops: number;
       sampleValues: number[];
       shape: [number, number, number];
       launchParams: LaunchParams | undefined;
@@ -301,7 +301,6 @@ test.describe('WebGPU tests', () => {
         }
         return array;
       }
-
       try {
         // run benchmarks of the sgemm with various shapes to measure webgpu performance.
         // Bench harness partiall borrowed from `milhidaka/webgpu-blas`
@@ -343,11 +342,11 @@ test.describe('WebGPU tests', () => {
             timeSum += sgemmEndTime - sgemmStartTime;
           }
           const avgTime = timeSum / runs;
-          const flops = (m * n * k * 2 * 1000) / avgTime / 1000000000;
+          const gflops = (m * n * k * 2 * 1000) / avgTime / 1000000000;
           shapeResults.push({
             success: true,
             averageTimeMs: avgTime,
-            flops: flops,
+            tflops: gflops / 1000,
             sampleValues: lastResult ? Array.from(lastResult.slice(0, sampleSliceLen)) : [],
             shape: [m, n, k],
             launchParams: launchParams,
@@ -374,7 +373,7 @@ test.describe('WebGPU tests', () => {
     for (const benchmark of benchmarkResult.gemmResults) {
       expect(benchmark.success).toBe(true);
       expect(benchmark.averageTimeMs).toBeGreaterThan(0);
-      expect(benchmark.flops).toBeGreaterThan(0);
+      expect(benchmark.tflops).toBeGreaterThan(0);
       expect(benchmark.shape.length).toBe(3);
       expect(benchmark.sampleValues.length).toBeGreaterThan(0);
 
