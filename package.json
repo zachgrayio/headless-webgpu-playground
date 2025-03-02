@@ -18,6 +18,7 @@
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.8",
     "@webgpu/types": "^0.1.54",
-    "puppeteer": "^24.3.0"
+    "puppeteer": "^24.3.0",
+    "webgpu-blas": "^1.2.0"
   }
 }
