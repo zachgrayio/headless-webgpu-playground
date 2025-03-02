@@ -94,6 +94,8 @@ test.describe('WebGPU tests', () => {
   });
 
   test('should perform WebGPU matmul', async ({ page }) => {
+    // go to a real https page so WebGPU works, it doesn't seem to init on about:blank
+    // even with security flags set?
     await _gotoWebGpuSamples(page);
 
     const shaderCode = await loadShader('matmul_fma.wgsl');
