@@ -149,7 +149,7 @@ test.describe('WebGPU tests', () => {
       }
 
       /**
-       * disclaimer: this is a partially generated and unverified webgpu sgemm
+       * a simple sgemm implementation using WebGPU, shaders are loaded from shaders/*.wgsl
        * @param m
        * @param n
        * @param k
@@ -292,13 +292,12 @@ test.describe('WebGPU tests', () => {
         };
       }
 
+      // simple LCG random number generator with seed, scaled to [0.01, 1.0] range
       function makeRandom(length: number, seed: number = 12345): Float32Array {
         const array = new Float32Array(length);
         let x = seed;
         for (let i = 0; i < length; i++) {
-          // LCG random number generator with seed
           x = (x * 48271) % 2147483647;
-          // ccale to [0.01, 1.0] range
           array[i] = 0.01 + 0.99 * (x / 2147483647);
         }
         return array;
