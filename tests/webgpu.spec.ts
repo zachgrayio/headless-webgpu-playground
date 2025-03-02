@@ -1,7 +1,6 @@
 /// <reference types="@webgpu/types" />
 
 import { test, expect, Page } from '@playwright/test';
-import exp from 'constants';
 import * as fs from 'fs';
 import * as path from 'path';
 
