@@ -48,7 +48,7 @@ export default defineConfig({
             '--ignore-gpu-blocklist',
             // bypass security restrictions for testing
             '--no-sandbox',
-            // treat about:blank as secure (doesnt seem to work?)
+            // treat about:blank as secure
             '--unsafely-treat-insecure-origin-as-secure="about:blank"',
             // set window dimensions
             '--window-size=1600,1200',
