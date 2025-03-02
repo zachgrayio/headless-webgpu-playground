@@ -1,5 +1,7 @@
 # headless-webgpu-playground
 
+Exploring the settings needed to get headless WebGPU working on NVIDIA hardware, and the performance of WebGPU shaders under frameworks like puppeteer and playwright.
+
 ## Usage
 
 - `npm run test:puppeteer` - runs the puppeteer tests that will check the `chrome://gpu` page for expected settings, and save a screenshot of the page
