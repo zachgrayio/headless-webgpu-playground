@@ -9,8 +9,6 @@ if (!fs.existsSync(resultsDir)) {
 }
 
 (async () => {
-  console.log('Launching browser with WebGPU flags...');
-
   const browser = await puppeteer.launch({
     headless: 'new',
     args: [
