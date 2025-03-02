@@ -1,0 +1,23 @@
+{
+  "name": "headless-gpu",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:webgpu": "playwright test webgpu.spec.ts",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:puppeteer": "node tests/puppeteer-gpu.js",
+    "report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "@types/node": "^22.13.8",
+    "@webgpu/types": "^0.1.54",
+    "puppeteer": "^24.3.0"
+  }
+}
