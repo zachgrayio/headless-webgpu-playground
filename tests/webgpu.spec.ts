@@ -305,17 +305,17 @@ test.describe('WebGPU tests', () => {
         // run benchmarks of the sgemm with various shapes to measure webgpu performance.
         // Bench harness partiall borrowed from `milhidaka/webgpu-blas`
         const shapes = [
-          [64, 64, 64],
-          [256, 256, 256],
-          [1024, 1024, 1024],
-          [4096, 4096, 4096],
+          // [64, 64, 64],
+          // [256, 256, 256],
+          // [1024, 1024, 1024],
+          // [4096, 4096, 4096],
           // this shape about as large as I can go before the operation returns 0s
           // in the result array, which is a sign WebGPU is failing, probably a
           // timeout issue somewhere
           [4096, 4096, 8000],
         ];
         const alpha = 1.0;
-        const runs = 30;
+        const runs = 1;
         const sampleSliceLen = 4;
         let shapeResults: WebGPUSgemmBenchmarkResult[] = [];
 

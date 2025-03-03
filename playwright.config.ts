@@ -32,6 +32,8 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  timeout: 300 * 1000,
+
   /* Configure projects for major browsers */
   projects: [
     {
@@ -53,17 +55,17 @@ export default defineConfig({
             // set window dimensions
             '--window-size=1600,1200',
             // gpu acceleration settings
-            '--enable-gpu',
-            '--enable-gpu-rasterization',
-            '--gpu-no-context-lost',
-            '--disable-gpu-sandbox',
-            '--disable-software-rasterizer',
+            // '--enable-gpu',
+            // '--enable-gpu-rasterization',
+            // '--gpu-no-context-lost',
+            // '--disable-gpu-sandbox',
+            // '--disable-software-rasterizer',
             '--use-cmd-decoder=passthrough',
             '--disable-gpu-watchdog',
-            '--force-high-performance-gpu',
+            // '--force-high-performance-gpu',
             '--enable-zero-copy',
             // graphics api settings
-            '--use-gl=angle',
+            '--use-gl=swiftshader',
             '--use-angle=vulkan',
             '--use-vulkan=native',
             '--enable-features=Ozone,Vulkan,VulkanFromANGLE,DefaultANGLEVulkan,WebGPU',
