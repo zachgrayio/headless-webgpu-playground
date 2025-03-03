@@ -91,3 +91,11 @@ WebGPU gemms completed:  {
 ```
 And in `nvtop`: 
 ![image](https://github.com/user-attachments/assets/a5642c3e-4f1e-4648-85ae-250a84ee08a7)
+
+## MacOS CPU
+
+See [this branch](https://github.com/zachgrayio/headless-webgpu-playground/tree/mac-cpu) to get this running on macOS and CPU via swiftshader. Compared to my 4090:
+- the 4090 completes the matmul benchmark at around 0.64 TFLOPS, not great, but good enough for my purposes
+- an M4 Max chip running with Swiftshader & CPU gets 0.0112 TFLOPS
+
+So the real GPU is around 56x faster for this workload.
